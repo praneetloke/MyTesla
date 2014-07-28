@@ -15,8 +15,8 @@ import org.springframework.util.LinkedMultiValueMap;
 @Rest(rootUrl = Endpoints.ROOT_URL, converters = { FormHttpMessageConverter.class, StringHttpMessageConverter.class })
 @Accept(MediaType.TEXT_HTML)
 public interface LoginClient {
-    void setCookie(String name, String value);
-    String getCookie(String name);
+    void setCookie (String name, String value);
+    String getCookie (String name);
 
     @Get(Endpoints.LOGIN)
     @SetsCookie({"_s_portal_session"})

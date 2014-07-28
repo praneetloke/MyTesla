@@ -15,8 +15,8 @@ import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
 @Rest(rootUrl = Endpoints.ROOT_URL, converters = { GsonHttpMessageConverter.class })
 public interface VehicleCommandClient {
-    void setCookie(String name, String value);
-    String getCookie(String name);
+    void setCookie (String name, String value);
+    String getCookie (String name);
 
     @Get(Endpoints.BASE_COMMAND_PATH + Endpoints.VehicleCommand.CHARGE_STATE)
     @RequiresCookie({"_s_portal_session", "user_credentials"})

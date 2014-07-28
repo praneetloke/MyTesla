@@ -13,8 +13,8 @@ import java.util.List;
 
 @Rest(rootUrl = Endpoints.ROOT_URL, converters = { GsonHttpMessageConverter.class })
 public interface VehicleStatusClient {
-    void setCookie(String name, String value);
-    String getCookie(String name);
+    void setCookie (String name, String value);
+    String getCookie (String name);
 
     @Get(Endpoints.VEHICLES_PATH)
     List<TeslaVehicle> getVehicles ();
