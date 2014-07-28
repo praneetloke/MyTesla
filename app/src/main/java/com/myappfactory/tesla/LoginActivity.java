@@ -275,8 +275,16 @@ public class LoginActivity extends FragmentActivity implements LoaderManager.Loa
         loginForm.add("user_session[email]", email);
         loginForm.add("user_session[password]", password);
         application.getLoginClient().postLoginForm(loginForm);
-        if (application.getLoginClient().getCookie("user_credentials") != null) {
+        String userCredentials = application.getLoginClient().getCookie("user_credentials");
+        if (userCredentials != null) {
             //Login was successful
+            //set cookie in the other clients
+            application.getVehicleCommandClient().setCookie("_s_portal_session", userCredentials);
+            application.getVehicleCommandClient().setCookie("user_credentials", userCredentials);
+
+            application.getVehicleStatusClient().setCookie("_s_portal_session", userCredentials);
+            application.getVehicleStatusClient().setCookie("user_credentials", userCredentials);
+
             finish();
         } else {
             //failed
