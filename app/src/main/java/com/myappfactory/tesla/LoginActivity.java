@@ -5,11 +5,14 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.ContactsContract;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
@@ -28,6 +31,7 @@ import android.widget.TextView;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 import org.springframework.util.LinkedMultiValueMap;
 
@@ -41,27 +45,31 @@ import java.util.List;
 public class LoginActivity extends FragmentActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     // UI references.
+    @ViewById(R.id.teslaTitle)
+    TextView teslaTitle;
     @ViewById(R.id.email)
     AutoCompleteTextView mEmailView;
     @ViewById(R.id.password)
     EditText mPasswordView;
-    @ViewById(R.id.login_progress)
-    View mProgressView;
     @ViewById(R.id.login_form)
     View mLoginFormView;
     @ViewById(R.id.email_sign_in_button)
     Button mEmailSignInButton;
+    @ViewById(R.id.progress_container)
+    View mProgressView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        Typeface face= Typeface.createFromAsset(getAssets(),
+                "fonts/TeslaNikolaCaps.ttf");
+
+        teslaTitle.setTypeface(face);
         // Set up the login form.
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
 
-        mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -76,13 +84,9 @@ public class LoginActivity extends FragmentActivity implements LoaderManager.Loa
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                mEmailSignInButton.setEnabled(false);
                 attemptLogin();
             }
         });
-
-        mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
     }
 
     private void populateAutoComplete() {
@@ -133,21 +137,32 @@ public class LoginActivity extends FragmentActivity implements LoaderManager.Loa
         }
 
         if (cancel) {
-            mEmailSignInButton.setEnabled(true);
             // There was an error; don't attempt login and focus the first
             // form field with an error.
             focusView.requestFocus();
         } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            showProgress(true);
+            mHandler.sendEmptyMessage(0);
             doLogin(email, password);
         }
     }
+
     private boolean isEmailValid(String email) {
         return email.contains("@");
     }
 
+    private Handler mHandler = new Handler() {
+        public void handleMessage (Message msg) {
+            switch (msg.what) {
+                case 1:
+                    showProgress(false);
+                    break;
+                case 0:
+                default:
+                    showProgress(true);
+                    break;
+            }
+        }
+    };
     /**
      * Shows the progress UI and hides the login form.
      */
@@ -269,7 +284,7 @@ public class LoginActivity extends FragmentActivity implements LoaderManager.Loa
     }
 
     @Background
-    public void doLogin (String email, String password) {
+    protected void doLogin (String email, String password) {
         TeslaApplication application = (TeslaApplication) getApplication();
         LinkedMultiValueMap<String, String> loginForm = new LinkedMultiValueMap<String, String>();
         loginForm.add("user_session[email]", email);
@@ -277,18 +292,22 @@ public class LoginActivity extends FragmentActivity implements LoaderManager.Loa
         application.getLoginClient().postLoginForm(loginForm);
         String userCredentials = application.getLoginClient().getCookie("user_credentials");
         if (userCredentials != null) {
-            //Login was successful
-            //set cookie in the other clients
-            application.getVehicleCommandClient().setCookie("_s_portal_session", userCredentials);
-            application.getVehicleCommandClient().setCookie("user_credentials", userCredentials);
-
-            application.getVehicleStatusClient().setCookie("_s_portal_session", userCredentials);
-            application.getVehicleStatusClient().setCookie("user_credentials", userCredentials);
+            //Login was successful...set cookie in the other clients
+            application.setCookie("user_credentials", userCredentials, true);
 
             finish();
         } else {
             //failed
+            loginFailed();
         }
+    }
+
+    @UiThread
+    protected void loginFailed () {
+        mHandler.sendEmptyMessage(1);
+        mEmailView.setError(getString(R.string.error_login_failed));
+        mPasswordView.setError(getString(R.string.error_login_failed));
+        mEmailView.requestFocus();
     }
 }
 

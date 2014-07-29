@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bbutton_primary">#ff428bca</color>
+    <color name="bbutton_primary_edge">#ff357ebd</color>
+    <color name="bbutton_primary_pressed">#ff3276b1</color>
+    <color name="bbutton_primary_pressed_edge">#ff285e8e</color>
+    <color name="bbutton_primary_disabled">#a5428bca</color>
+    <color name="bbutton_primary_disabled_edge">#a5357ebd</color>
+    <color name="color_preloader_start">#000000</color>
+    <color name="color_preloader_center">#000000</color>
+    <color name="color_preloader_end">#ff56a9c7</color>
+</resources>
